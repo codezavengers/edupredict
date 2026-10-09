@@ -1,5 +1,6 @@
-import { AppShell } from '@/components/app-shell'
+import type React from "react"
+import { AppShell } from "@/components/app-shell"
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AppGroupLayout({ children }: { children: React.ReactNode }) {
   return <AppShell>{children}</AppShell>
 }
