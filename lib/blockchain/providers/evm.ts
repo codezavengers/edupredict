@@ -110,32 +110,17 @@ export class EvmProvider extends AbstractProvider {
     return Array.isArray(payload.result) ? payload.result : []
   }
 
-  async getTransactionsPaged(address: string, _chain?: Chain, options: TxQueryOptions = {}): Promise<PagedTransactions> {
-    const cap = Math.min(options.maxTransactions ?? 500, 500)
-    const page = options.page ?? 1
-    const offset = Math.min(options.offset ?? 100, 100)
-    const rows = await this.etherscan<{ hash: string; from: string; to: string; value: string; timeStamp: string; blockNumber: string; isError?: string; txreceipt_status?: string }>(
-      { module: "account", action: "txlist", address, startblock: "0", endblock: "99999999", page: String(page), offset: String(offset), sort: "desc" },
-    )
-    const transactions = rows
-      .filter((row) => row.isError !== "1" && row.txreceipt_status !== "0")
-      .map((row) => normalizeNative({
-        hash: row.hash,
-        chain: this.chain,
-        from: row.from,
-        to: row.to,
-        amount: baseUnitsToDecimal(row.value, 18),
-        asset: NATIVE_ASSET[this.chain],
-        timestamp: row.timeStamp ? new Date(Number(row.timeStamp) * 1000).toISOString() : null,
-        blockHeight: parseBlockHeight(row.blockNumber),
-        provenance: "LIVE_BLOCKCHAIN_DATA",
-        sourceType: "LIVE_INDEXED",
-        address,
-      }))
-      .filter((tx) => !options.startDate || !tx.timestamp || tx.timestamp >= options.startDate)
-      .filter((tx) => !options.endDate || !tx.timestamp || tx.timestamp <= options.endDate)
-      .slice(0, cap)
-    return { transactions, meta: { totalFetched: transactions.length, pagesFetched: 1, truncated: rows.length >= offset || transactions.length >= cap } }
+  async getTransactionsPaged(_address: string, _chain?: Chain, _options: TxQueryOptions = {}): Promise<PagedTransactions> {
+    return {
+      transactions: [],
+      meta: {
+        totalFetched: 0,
+        pagesFetched: 0,
+        truncated: false,
+        unsupported: true,
+        unsupportedReason: "Historical address transaction enumeration requires an indexer; the configured EVM RPC exposes no address-history endpoint.",
+      },
+    }
   }
 
   async getTransactions(address?: string, chain?: Chain, options?: TxQueryOptions): Promise<Transaction[]> {
